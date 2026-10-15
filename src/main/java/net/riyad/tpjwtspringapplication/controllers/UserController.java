@@ -1,6 +1,5 @@
 package net.riyad.tpjwtspringapplication.controllers;
 
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,9 +15,7 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public String profile(
-        Authentication authentication) {
-
+    public String profile(Authentication authentication) {
         return "Utilisateur connecte : "
                 + authentication.getName();
     }
