@@ -1,0 +1,54 @@
+package net.riyad.tpjwtspringapplication.service;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.io.Decoders;
+import io.jsonwebtoken.security.Keys;
+import org.hibernate.mapping.UserDefinedArrayType;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import javax.crypto.SecretKey;
+import java.util.Date;
+
+public class JwtService {
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    @Value("${jwt.expiration}")
+    private long jwtExpiration;
+
+    private SecretKey getSecretKey() {
+        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getSecretKey())
+                .compact();
+    }
+
+    public String extractUsername(String token) {
+        return extractAllClaimsFromToken(token).getSubject();
+    }
+
+    public Claims extractAllClaimsFromToken(String token) {
+        return Jwts.parser()
+                .verifyWith(getSecretKey())
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+    public Boolean isTokenValid(String token,UserDetails userDetails) {
+        String userName=extractUsername(token);
+        return userDetails.getUsername().equals(userName);
+    }
+    public Boolean isTokenExpired(String token) {
+        Date expiration = extractAllClaimsFromToken(token).getExpiration();
+        return expiration.before(new Date());
+    }
+
+}
