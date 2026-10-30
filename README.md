@@ -117,6 +117,24 @@ JWTSpringApplication/
 
 ![User Profile](docs/screenshots/profile.png)
 
+## API Testing with Postman
+
+The REST API endpoints were tested using Postman.
+
+### 1. User Registration
+
+![Postman Register](docs/screenshots/postman-register.jpg)
+
+### 2. User Login
+
+![Postman Login](docs/screenshots/postman-login.jpg)
+
+### 3. Get Authenticated User Profile
+
+![Postman Profile](docs/screenshots/postman-profile.jpg)
+
+The login endpoint returns a JWT token, which is used in the `Authorization: Bearer` header to access protected endpoints such as `/api/profile`.
+
 ## Prérequis
 
 Avant de lancer le projet, installer :
