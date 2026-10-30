@@ -1,3 +1,4 @@
+
 package net.riyad.tpjwtspringapplication.security;
 
 import jakarta.servlet.FilterChain;
@@ -17,14 +18,15 @@ import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter {
+
     private final JwtService jwtService;
     private final CustomerUserDetailsService userDetailsService;
+
     public JwtFilter(
             JwtService jwtService,
             CustomerUserDetailsService userDetailsService) {
         this.jwtService = jwtService;
-        this.userDetailsService =
-                userDetailsService;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -33,25 +35,47 @@ public class JwtFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain)
             throws ServletException, IOException {
+
         String authHeader = request.getHeader("Authorization");
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            filterChain.doFilter(request, response);
-            return;
-        }
-        String token = authHeader.substring(7);
-        try{
-            String username = jwtService.extractUsername(token);
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-                if (jwtService.isTokenValid(token, userDetails)) {
-                    UsernamePasswordAuthenticationToken
-                            authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+
+            String token = authHeader.substring(7);
+
+            try {
+                String username = jwtService.extractUsername(token);
+
+                if (username != null &&
+                        SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                    UserDetails userDetails =
+                            userDetailsService.loadUserByUsername(username);
+
+                    if (jwtService.isTokenValid(token, userDetails)) {
+
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails,
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+
+                        authentication.setDetails(
+                                new WebAuthenticationDetailsSource()
+                                        .buildDetails(request)
+                        );
+
+                        SecurityContextHolder.getContext()
+                                .setAuthentication(authentication);
+                    }
                 }
+
+            } catch (Exception e) {
+                SecurityContextHolder.clearContext();
             }
-        } catch(Exception e) {
-            filterChain.doFilter(request, response);
         }
+
+        // Continuer la chaîne de filtres dans tous les cas
+        filterChain.doFilter(request, response);
     }
 }
